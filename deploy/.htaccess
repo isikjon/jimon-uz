@@ -1,0 +1,70 @@
+# JIMON GROUP Uzbekistan — Apache rules for the static export
+Options -Indexes -MultiViews
+DirectoryIndex index.html
+# Serve /uz without a trailing-slash redirect (a folder "uz/" also exists for /uz/privacy)
+<IfModule mod_dir.c>
+  DirectorySlash Off
+</IfModule>
+AddDefaultCharset UTF-8
+
+<IfModule mod_mime.c>
+  AddType image/webp .webp
+  AddType image/avif .avif
+  AddType video/mp4 .mp4
+  AddType application/manifest+json .webmanifest
+  AddType font/woff2 .woff2
+</IfModule>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Force HTTPS once the SSL certificate is installed (uncomment the two lines below)
+  # RewriteCond %{HTTPS} off
+  # RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+  # Canonical URLs: RU lives at the root, UZ at /uz
+  RewriteRule ^ru/?$ / [R=301,L]
+  RewriteRule ^ru/privacy/?$ /privacy [R=301,L]
+
+  RewriteRule ^$ ru.html [L]
+  RewriteRule ^privacy/?$ ru/privacy.html [L]
+  RewriteRule ^uz/?$ uz.html [L]
+  RewriteRule ^uz/privacy/?$ uz/privacy.html [L]
+
+  # Existing files and folders are served as is
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Pretty URLs without .html
+  RewriteCond %{REQUEST_FILENAME}.html -f
+  RewriteRule ^(.+)$ $1.html [L]
+</IfModule>
+
+ErrorDocument 404 /404.html
+
+# Protect lead config and log
+<FilesMatch "^(lead\.config\.php|lead\.config\.example\.php|leads\.log)$">
+  Require all denied
+</FilesMatch>
+
+# Security headers
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+  <FilesMatch "\.(js|css|woff2|webp|avif|png|jpg|mp4|pdf)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "public, max-age=0, must-revalidate"
+  </FilesMatch>
+</IfModule>
+
+# Compression (AddOutputFilterByType needs mod_filter on Apache 2.4 — guarded so the site never 500s without it)
+<IfModule mod_deflate.c>
+  <IfModule mod_filter.c>
+    AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json image/svg+xml application/manifest+json text/xml
+  </IfModule>
+</IfModule>

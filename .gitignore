@@ -1,0 +1,24 @@
+# dependencies / builds
+node_modules
+.next
+out
+*.tsbuildinfo
+next-env.d.ts
+
+# static export archive (built by scripts/build-static.sh)
+jimon-site.zip
+
+# secrets
+.env
+.env.local
+.env*.local
+deploy/lead.config.php
+deploy/leads.log
+
+# client source materials (catalog PDF pages, voice notes, raw photos, QA screenshots) — kept locally only
+_source
+
+# OS / editor
+.DS_Store
+*.log
+.claude/launch.json
